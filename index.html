@@ -43,8 +43,10 @@
     .wrap{max-width:1100px;margin:0 auto;padding:34px 18px 64px}
     .center{text-align:center}
     .title{font-size:30px;line-height:1.15;margin:0}
-    .authors{margin-top:10px;color:var(--muted);font-size:16px}
-    .affil{margin-top:6px;color:var(--muted);font-size:15px}
+
+    /* UPDATED SIZING */
+    .authors{margin-top:10px;color:var(--muted);font-size:18px;font-weight:600;}
+    .affil{margin-top:6px;color:var(--muted);font-size:15px;font-weight:400;}
     .email{margin-top:6px;color:var(--muted);font-size:14px}
 
     .pillrow{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
@@ -108,6 +110,15 @@
       font-size:13px;line-height:1.5
     }
     .footer{margin-top:28px;color:var(--muted);font-size:13px;text-align:center}
+
+    /* NEW: justified abstract text while keeping the title centered */
+    .abstract-text{
+      max-width:900px;
+      margin:0 auto;
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+    }
   </style>
 </head>
 
@@ -133,6 +144,7 @@
       </div>
     </header>
 
+    <!-- Interactive plots (unchanged) -->
     <section class="section">
       <div class="center muted" style="margin-bottom:10px;">
         Interactive results (hover points to see exact values).
@@ -175,10 +187,13 @@
       </div>
     </section>
 
+    <!-- Abstract -->
     <section class="section">
-      <div class="card center">
-        <h2>Abstract</h2>
-        <p style="max-width:900px;margin:0 auto;">
+      <div class="card">
+        <!-- Title centered -->
+        <h2 class="center">Abstract</h2>
+        <!-- Text justified -->
+        <p class="abstract-text">
           DINO models provide rich patch-level representations that have recently enabled strong performance in unsupervised anomaly detection (UAD).
           Most existing methods extract patch embeddings from “normal” images and model them independently, ignoring spatial and neighborhood relationships between patches.
           In addition, the normative distribution is often modeled as memory banks or prototype-based representations, which require storing large numbers of features and performing costly comparisons at inference time, leading to substantial memory and computational overhead.
@@ -191,6 +206,7 @@
       </div>
     </section>
 
+    <!-- Citation (unchanged) -->
     <section class="section">
       <div class="card center">
         <h2>Citation</h2>
@@ -213,8 +229,6 @@
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
 
-    // Fixed color per method (consistent across all panels)
-    // Feel free to change any hex codes — but keep keys exactly matching method names.
     const COLOR_MAP = {
       "DRAEM": "#1f77b4",
       "UTRAD": "#ff7f0e",
@@ -232,7 +246,6 @@
       "Ours (dilated conv)": "#ffdd00"
     };
 
-    // ===== Data (from your LaTeX table in the paper) =====
     const METHODS = [
       {name:"DRAEM",        runtime:130, auroc:{brats:[63.85,16.37], liver:[89.42,4.96], resc:[88.81,3.95]}, aupr:{brats:[14.61,7.94], liver:[7.03,4.79], resc:[38.05,9.94]}},
       {name:"UTRAD",        runtime:42,  auroc:{brats:[47.47,3.78],  liver:[85.54,0.36], resc:[94.62,0.11]}, aupr:{brats:[3.11,0.25],  liver:[1.36,0.04], resc:[49.57,1.20]}},
@@ -242,20 +255,15 @@
       {name:"PatchCore",    runtime:218, auroc:{brats:null,          liver:[96.63,0.00], resc:[97.57,0.01]}, aupr:{brats:null,          liver:[6.00,0.01], resc:[72.77,0.06]}},
       {name:"CFA",          runtime:116, auroc:{brats:[97.33,0.09],  liver:[97.14,0.13], resc:[93.11,0.02]}, aupr:{brats:[54.67,0.69], liver:[7.13,0.41], resc:[30.84,0.09]}},
       {name:"CFLOW",        runtime:219, auroc:{brats:[94.93,0.71],  liver:[92.88,2.17], resc:[94.68,0.05]}, aupr:{brats:[34.99,6.26], liver:[3.46,0.70], resc:[52.23,1.19]}},
-
       {name:"AnomalyDINO (v2-S)", runtime:984, auroc:{brats:[97.71,0.00], liver:[97.24,0.00], resc:[94.04,0.00]}, aupr:{brats:[58.69,0.00], liver:[17.91,0.00], resc:[50.45,0.00]}},
       {name:"AnomalyDINO (v3-S)", runtime:585, auroc:{brats:[98.38,0.00], liver:[96.98,0.00], resc:[96.93,0.00]}, aupr:{brats:[69.49,0.00], liver:[5.35,0.00],  resc:[63.40,0.00]}},
       {name:"DPMM (v2-S)",        runtime:58,  auroc:{brats:[91.16,3.72],  liver:[96.30,0.94], resc:[86.47,1.84]}, aupr:{brats:[29.18,6.74], liver:[7.05,1.78], resc:[34.99,2.79]}},
       {name:"DPMM (v3-S)",        runtime:149, auroc:{brats:[96.12,0.55],  liver:[90.48,1.05], resc:[86.94,7.76]}, aupr:{brats:[48.09,6.62], liver:[1.94,0.25], resc:[37.70,17.83]}},
-
       {name:"Ours (standard conv)", runtime:20, auroc:{brats:[97.87,0.24], liver:[97.32,0.24], resc:[94.39,0.10]}, aupr:{brats:[64.70,3.56], liver:[8.44,1.09],  resc:[56.16,1.08]}},
       {name:"Ours (dilated conv)",  runtime:20, auroc:{brats:[98.35,0.02], liver:[96.39,0.04], resc:[93.09,0.19]}, aupr:{brats:[72.42,0.47], liver:[5.51,0.26],  resc:[42.34,1.07]}},
     ];
 
-    function colorFor(name){
-      // fallback to a neutral color if a new method is added without a mapping
-      return COLOR_MAP[name] || "#9ca3af";
-    }
+    function colorFor(name){ return COLOR_MAP[name] || "#9ca3af"; }
 
     function makeTraces(metricKey, datasetKey){
       const traces = [];
@@ -265,14 +273,13 @@
 
         const mean = v[0], std = v[1];
         const x = m.runtime;
+        const c = colorFor(m.name);
 
         const hover =
           `<b>${m.name}</b><br>` +
           `${datasetKey.toUpperCase()}<br>` +
           `${metricKey.toUpperCase()}: ${mean.toFixed(2)} ± ${std.toFixed(2)}<br>` +
           `Runtime: ${x} ms`;
-
-        const c = colorFor(m.name);
 
         traces.push({
           x: [x],
@@ -281,19 +288,8 @@
           mode: "markers",
           name: m.name,
           hovertemplate: hover + "<extra></extra>",
-          error_y: {
-            type: "data",
-            array: [std],
-            visible: (std > 0),
-            color: c,
-            thickness: 1.4,
-            width: 4
-          },
-          marker: {
-            size: 11,
-            color: c,
-            line: {width: 1, color: c}
-          }
+          error_y: {type:"data", array:[std], visible:(std>0), color:c, thickness:1.4, width:4},
+          marker: {size: 11, color: c, line: {width: 1, color: c}}
         });
       }
       return traces;
@@ -310,43 +306,25 @@
         paper_bgcolor: bg,
         plot_bgcolor: bg,
         showlegend: false,
-        xaxis: {
-          title: "Runtime [ms]",
-          type: "log",
-          gridcolor: border,
-          zeroline: false,
-          tickfont: {color: muted},
-          titlefont: {color: muted}
-        },
-        yaxis: {
-          title: yTitle,
-          gridcolor: border,
-          zeroline: false,
-          tickfont: {color: muted},
-          titlefont: {color: muted}
-        },
+        xaxis: {title: "Runtime [ms]", type: "log", gridcolor: border, zeroline: false, tickfont: {color: muted}, titlefont: {color: muted}},
+        yaxis: {title: yTitle, gridcolor: border, zeroline: false, tickfont: {color: muted}, titlefont: {color: muted}},
         font: {color: fg},
       };
     }
 
     function renderAll(){
       const config = {responsive:true, displayModeBar:false};
-
       Plotly.newPlot("plot_auroc_brats", makeTraces("auroc","brats"), baseLayout("AUROC [%]"), config);
       Plotly.newPlot("plot_auroc_liver", makeTraces("auroc","liver"), baseLayout("AUROC [%]"), config);
       Plotly.newPlot("plot_auroc_resc",  makeTraces("auroc","resc"),  baseLayout("AUROC [%]"), config);
-
       Plotly.newPlot("plot_aupr_brats", makeTraces("aupr","brats"), baseLayout("AUPR [%]"), config);
       Plotly.newPlot("plot_aupr_liver", makeTraces("aupr","liver"), baseLayout("AUPR [%]"), config);
       Plotly.newPlot("plot_aupr_resc",  makeTraces("aupr","resc"),  baseLayout("AUPR [%]"), config);
     }
 
     renderAll();
-
     if (window.matchMedia){
-      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-        renderAll();
-      });
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => renderAll());
     }
   </script>
 </body>
