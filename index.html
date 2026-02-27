@@ -34,8 +34,10 @@
       }
     }
 
-    html,body{background:var(--bg);color:var(--fg);margin:0;
-      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
+    html,body{
+      background:var(--bg);color:var(--fg);margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+    }
     a{color:var(--link);text-decoration:none}
     a:hover{color:var(--link2);text-decoration:underline}
 
@@ -43,6 +45,8 @@
     .center{text-align:center}
     .title{font-size:30px;line-height:1.15;margin:0}
     .authors{margin-top:10px;color:var(--muted);font-size:16px}
+    .affil{margin-top:6px;color:var(--muted);font-size:15px}
+    .email{margin-top:6px;color:var(--muted);font-size:14px}
 
     .pillrow{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
     .pill{
@@ -62,7 +66,6 @@
     p{margin:10px 0;line-height:1.6}
     .muted{color:var(--muted)}
 
-    /* Plots layout: 3 columns on desktop, 1 column on mobile */
     .plot-grid{
       display:grid;
       grid-template-columns: repeat(3, 1fr);
@@ -100,7 +103,11 @@
     @media (prefers-color-scheme: dark){
       .codebox{background:#0a0d14;}
     }
-    pre{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:13px;line-height:1.5}
+    pre{
+      margin:0;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      font-size:13px;line-height:1.5
+    }
     .footer{margin-top:28px;color:var(--muted);font-size:13px;text-align:center}
   </style>
 </head>
@@ -112,6 +119,8 @@
     <header class="center">
       <h1 class="title">Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection</h1>
       <div class="authors">Ertunc Erdil, Nico Schulthess, Guney Tombak, Ertunc Erdil</div>
+      <div class="affil">Computer Vision Lab., ETH Zurich, Zurich, Switzerland</div>
+      <div class="email"><a href="mailto:erdile@ethz.ch">erdile@ethz.ch</a></div>
 
       <div class="pillrow">
         <!-- Put your PDF at assets/paper.pdf or change this link -->
@@ -264,7 +273,6 @@
     }
 
     function baseLayout(yTitle){
-      const isDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
       const fg = getComputedStyle(document.documentElement).getPropertyValue('--fg').trim();
       const muted = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim();
       const border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
@@ -295,7 +303,9 @@
     }
 
     function renderAll(){
-      const config = {responsive:true, displayModeBar:true};
+      // Remove Plotly toolbar buttons:
+      // - displayModeBar: false removes the whole bar (zoom/pan/save/etc.)
+      const config = {responsive:true, displayModeBar:false};
 
       Plotly.newPlot("plot_auroc_brats", makeTraces("auroc","brats"), baseLayout("AUROC [%]"), config);
       Plotly.newPlot("plot_auroc_liver", makeTraces("auroc","liver"), baseLayout("AUROC [%]"), config);
