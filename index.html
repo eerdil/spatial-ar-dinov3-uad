@@ -44,7 +44,6 @@
     .center{text-align:center}
     .title{font-size:30px;line-height:1.15;margin:0}
 
-    /* UPDATED SIZING */
     .authors{margin-top:10px;color:var(--muted);font-size:18px;font-weight:600;}
     .affil{margin-top:6px;color:var(--muted);font-size:15px;font-weight:400;}
     .email{margin-top:6px;color:var(--muted);font-size:14px}
@@ -66,6 +65,14 @@
     h2{font-size:18px;margin:0 0 10px}
     p{margin:10px 0;line-height:1.6}
     .muted{color:var(--muted)}
+
+    .abstract-text{
+      max-width:900px;
+      margin:0 auto;
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+    }
 
     .plot-grid{
       display:grid;
@@ -110,15 +117,6 @@
       font-size:13px;line-height:1.5
     }
     .footer{margin-top:28px;color:var(--muted);font-size:13px;text-align:center}
-
-    /* NEW: justified abstract text while keeping the title centered */
-    .abstract-text{
-      max-width:900px;
-      margin:0 auto;
-      text-align: justify;
-      text-justify: inter-word;
-      hyphens: auto;
-    }
   </style>
 </head>
 
@@ -127,7 +125,7 @@
 
     <header class="center">
       <h1 class="title">Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection</h1>
-      <div class="authors">Ertunc Erdil, Nico Schulthess, Guney Tombak, Ertunc Erdil</div>
+      <div class="authors">Ertunc Erdil, Nico Schulthess, Guney Tombak, Ender Konukoglu</div>
       <div class="affil">Computer Vision Lab., ETH Zurich, Zurich, Switzerland</div>
       <div class="email"><a href="mailto:erdile@ethz.ch">erdile@ethz.ch</a></div>
 
@@ -144,55 +142,10 @@
       </div>
     </header>
 
-    <!-- Interactive plots (unchanged) -->
-    <section class="section">
-      <div class="center muted" style="margin-bottom:10px;">
-        Interactive results (hover points to see exact values).
-      </div>
-
-      <div class="plot-grid">
-        <div class="plot-box">
-          <div class="plot-title">BraTS2021 — AUROC vs Runtime</div>
-          <div id="plot_auroc_brats" class="plot"></div>
-        </div>
-        <div class="plot-box">
-          <div class="plot-title">BTCV+LiTs — AUROC vs Runtime</div>
-          <div id="plot_auroc_liver" class="plot"></div>
-        </div>
-        <div class="plot-box">
-          <div class="plot-title">RESC — AUROC vs Runtime</div>
-          <div id="plot_auroc_resc" class="plot"></div>
-        </div>
-      </div>
-
-      <div style="height:14px;"></div>
-
-      <div class="plot-grid">
-        <div class="plot-box">
-          <div class="plot-title">BraTS2021 — AUPR vs Runtime</div>
-          <div id="plot_aupr_brats" class="plot"></div>
-        </div>
-        <div class="plot-box">
-          <div class="plot-title">BTCV+LiTs — AUPR vs Runtime</div>
-          <div id="plot_aupr_liver" class="plot"></div>
-        </div>
-        <div class="plot-box">
-          <div class="plot-title">RESC — AUPR vs Runtime</div>
-          <div id="plot_aupr_resc" class="plot"></div>
-        </div>
-      </div>
-
-      <div class="muted center" style="margin-top:10px;font-size:13px;">
-        Note: runtime values are taken from your RESC runtime column (as in your LaTeX figure table).
-      </div>
-    </section>
-
-    <!-- Abstract -->
+    <!-- Abstract FIRST -->
     <section class="section">
       <div class="card">
-        <!-- Title centered -->
         <h2 class="center">Abstract</h2>
-        <!-- Text justified -->
         <p class="abstract-text">
           DINO models provide rich patch-level representations that have recently enabled strong performance in unsupervised anomaly detection (UAD).
           Most existing methods extract patch embeddings from “normal” images and model them independently, ignoring spatial and neighborhood relationships between patches.
@@ -206,7 +159,53 @@
       </div>
     </section>
 
-    <!-- Citation (unchanged) -->
+    <!-- Results SECOND, with a title like Abstract -->
+    <section class="section">
+      <div class="card">
+        <h2 class="center">Results</h2>
+        <div class="center muted" style="margin-top:2px;margin-bottom:10px;">
+          Interactive results (hover points to see exact values).
+        </div>
+
+        <div class="plot-grid">
+          <div class="plot-box">
+            <div class="plot-title">BraTS2021 — AUROC vs Runtime</div>
+            <div id="plot_auroc_brats" class="plot"></div>
+          </div>
+          <div class="plot-box">
+            <div class="plot-title">BTCV+LiTs — AUROC vs Runtime</div>
+            <div id="plot_auroc_liver" class="plot"></div>
+          </div>
+          <div class="plot-box">
+            <div class="plot-title">RESC — AUROC vs Runtime</div>
+            <div id="plot_auroc_resc" class="plot"></div>
+          </div>
+        </div>
+
+        <div style="height:14px;"></div>
+
+        <div class="plot-grid">
+          <div class="plot-box">
+            <div class="plot-title">BraTS2021 — AUPR vs Runtime</div>
+            <div id="plot_aupr_brats" class="plot"></div>
+          </div>
+          <div class="plot-box">
+            <div class="plot-title">BTCV+LiTs — AUPR vs Runtime</div>
+            <div id="plot_aupr_liver" class="plot"></div>
+          </div>
+          <div class="plot-box">
+            <div class="plot-title">RESC — AUPR vs Runtime</div>
+            <div id="plot_aupr_resc" class="plot"></div>
+          </div>
+        </div>
+
+        <div class="muted center" style="margin-top:10px;font-size:13px;">
+          Note: runtime values are taken from your RESC runtime column (as in your LaTeX figure table).
+        </div>
+      </div>
+    </section>
+
+    <!-- Citation -->
     <section class="section">
       <div class="card center">
         <h2>Citation</h2>
@@ -214,7 +213,7 @@
         <div class="codebox" style="max-width:900px;margin:0 auto;">
 <pre>@inproceedings{erdil2025spatialar,
   title     = {Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection},
-  author    = {Erdil, Ertunc and Schulthess, Nico and Tombak, Guney and Erdil, Ertunc},
+  author    = {Erdil, Ertunc and Schulthess, Nico and Tombak, Guney and Konukoglu, Ender},
   booktitle = {Proceedings of ...},
   year      = {2025}
 }</pre>
