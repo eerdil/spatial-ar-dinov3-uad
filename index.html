@@ -5,12 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection</title>
 
-  <!-- Open Graph / social preview -->
-  <meta property="og:title" content="Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection" />
-  <meta property="og:description" content="A simple and efficient spatial autoregressive model on DINOv3 embeddings for UAD. Fast, memory-efficient inference." />
-  <meta property="og:type" content="website" />
-  <!-- Put a social preview image in your repo and update this -->
-  <meta property="og:image" content="assets/teaser.png" />
+  <!-- Plotly (client-side, works on GitHub Pages) -->
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
 
   <style>
     :root{
@@ -21,9 +17,8 @@
       --card:#f9fafb;
       --link:#2563eb;
       --link2:#1d4ed8;
-      --codebg:#0b1020;
-      --codefg:#e5e7eb;
       --pill:#eef2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,.06);
     }
     @media (prefers-color-scheme: dark){
       :root{
@@ -34,227 +29,291 @@
         --card:#0f1626;
         --link:#60a5fa;
         --link2:#93c5fd;
-        --codebg:#0a0d14;
-        --codefg:#e5e7eb;
         --pill:#111a33;
+        --shadow: 0 10px 30px rgba(0,0,0,.35);
       }
     }
-    html,body{background:var(--bg);color:var(--fg);margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
+
+    html,body{background:var(--bg);color:var(--fg);margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
     a{color:var(--link);text-decoration:none}
     a:hover{color:var(--link2);text-decoration:underline}
-    .wrap{max-width:980px;margin:0 auto;padding:28px 18px 60px}
-    .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:18px;margin-bottom:22px}
-    .title{font-size:28px;line-height:1.2;margin:0}
-    .subtitle{margin:8px 0 0;color:var(--muted);font-size:15px}
-    .authors{margin-top:10px;color:var(--muted);font-size:15px}
-    .pillrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-    .pill{display:inline-flex;align-items:center;gap:8px;background:var(--pill);border:1px solid var(--border);padding:8px 10px;border-radius:999px;font-size:14px}
+
+    .wrap{max-width:1100px;margin:0 auto;padding:34px 18px 64px}
+    .center{text-align:center}
+    .title{font-size:30px;line-height:1.15;margin:0}
+    .authors{margin-top:10px;color:var(--muted);font-size:16px}
+
+    .pillrow{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      background:var(--pill);border:1px solid var(--border);
+      padding:10px 12px;border-radius:999px;font-size:14px;
+      box-shadow: var(--shadow);
+    }
     .pill svg{width:16px;height:16px}
-    .grid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:18px;margin-top:18px}
-    @media (max-width: 860px){.grid{grid-template-columns:1fr}}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+
+    .section{margin-top:26px}
+    .card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:16px;padding:18px;box-shadow: var(--shadow);
+    }
     h2{font-size:18px;margin:0 0 10px}
-    p{margin:10px 0;color:var(--fg);line-height:1.55}
+    p{margin:10px 0;line-height:1.6}
     .muted{color:var(--muted)}
-    .figure{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg)}
-    .figure img{display:block;width:100%;height:auto}
-    .figcap{padding:10px 12px;border-top:1px solid var(--border);color:var(--muted);font-size:13px;line-height:1.45}
-    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;background:var(--bg);border:1px solid var(--border);padding:2px 6px;border-radius:6px}
-    table{width:100%;border-collapse:collapse;font-size:14px}
-    th,td{border-bottom:1px solid var(--border);padding:10px 10px;vertical-align:top}
-    th{text-align:left;color:var(--muted);font-weight:600}
-    .note{font-size:13px;color:var(--muted);margin-top:8px}
-    .codebox{background:var(--codebg);color:var(--codefg);border-radius:14px;padding:14px;overflow:auto;border:1px solid var(--border)}
+
+    /* Plots layout: 3 columns on desktop, 1 column on mobile */
+    .plot-grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+    }
+    @media (max-width: 980px){
+      .plot-grid{grid-template-columns: 1fr;}
+    }
+    .plot-box{
+      border:1px solid var(--border);
+      border-radius:16px;
+      overflow:hidden;
+      background:var(--bg);
+      box-shadow: var(--shadow);
+    }
+    .plot-title{
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      font-weight:600;
+      color:var(--muted);
+      background:var(--card);
+      text-align:center;
+    }
+    .plot{height:320px;}
+    @media (max-width: 980px){
+      .plot{height:360px;}
+    }
+
+    .divider{margin-top:26px;border-top:1px solid var(--border)}
+    .codebox{
+      background:#0b1020;color:#e5e7eb;border-radius:14px;
+      padding:14px;overflow:auto;border:1px solid var(--border);
+      text-align:left;
+    }
+    @media (prefers-color-scheme: dark){
+      .codebox{background:#0a0d14;}
+    }
     pre{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:13px;line-height:1.5}
-    .footer{margin-top:26px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .footer{margin-top:28px;color:var(--muted);font-size:13px;text-align:center}
   </style>
 </head>
 
 <body>
   <div class="wrap">
 
-    <div class="topbar">
-      <div>
-        <h1 class="title">Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection</h1>
-        <div class="subtitle">MICCAI 2025 submission (anonymized) • BMAD benchmark (BraTS2021, BTCV+LiTs, RESC)</div>
-        <div class="authors">
-          <span class="muted">Authors:</span> Anonymized Authors
-          <!-- After acceptance, replace with real author list + affiliations -->
+    <!-- Header -->
+    <header class="center">
+      <h1 class="title">Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection</h1>
+      <div class="authors">Ertunc Erdil, Nico Schulthess, Guney Tombak, Ertunc Erdil</div>
+
+      <div class="pillrow">
+        <!-- Put your PDF at assets/paper.pdf or change this link -->
+        <a class="pill" href="assets/paper.pdf" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l3 3v15a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Z" stroke="currentColor" stroke-width="1.6"/><path d="M14 3v4a2 2 0 0 0 2 2h4" stroke="currentColor" stroke-width="1.6"/></svg>
+          Paper (PDF)
+        </a>
+
+        <!-- Update to your real code URL -->
+        <a class="pill" href="https://github.com/eerdil/spatial-ar-dinov3-uad" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 19c-4 1.5-4-2.5-5-3m10 6v-3.5c0-1 .1-1.4-.5-2 2.2-.3 4.5-1.1 4.5-5A4 4 0 0 0 17 8a3.7 3.7 0 0 0-.1-3S16 4.7 14 6a13.4 13.4 0 0 0-5 0C7 4.7 6.1 5 6.1 5A3.7 3.7 0 0 0 6 8a4 4 0 0 0-1 2.9c0 3.9 2.3 4.7 4.5 5-.4.4-.5 1-.5 2V22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Code
+        </a>
+      </div>
+    </header>
+
+    <!-- Interactive plots -->
+    <section class="section">
+      <div class="center muted" style="margin-bottom:10px;">
+        Interactive results (hover points to see exact values).
+      </div>
+
+      <div class="plot-grid">
+        <div class="plot-box">
+          <div class="plot-title">BraTS2021 — AUROC vs Runtime</div>
+          <div id="plot_auroc_brats" class="plot"></div>
         </div>
-
-        <div class="pillrow">
-          <a class="pill" href="assets/paper.pdf" target="_blank" rel="noopener">
-            <!-- icon -->
-            <svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l3 3v15a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Z" stroke="currentColor" stroke-width="1.6"/><path d="M14 3v4a2 2 0 0 0 2 2h4" stroke="currentColor" stroke-width="1.6"/></svg>
-            Paper (PDF)
-          </a>
-
-          <a class="pill" href="https://github.com/YOUR_USERNAME/YOUR_REPO" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M9 19c-4 1.5-4-2.5-5-3m10 6v-3.5c0-1 .1-1.4-.5-2 2.2-.3 4.5-1.1 4.5-5A4 4 0 0 0 17 8a3.7 3.7 0 0 0-.1-3S16 4.7 14 6a13.4 13.4 0 0 0-5 0C7 4.7 6.1 5 6.1 5A3.7 3.7 0 0 0 6 8a4 4 0 0 0-1 2.9c0 3.9 2.3 4.7 4.5 5-.4.4-.5 1-.5 2V22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Code
-          </a>
-
-          <a class="pill" href="assets/poster.pdf" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M7 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            Poster
-          </a>
-
-          <a class="pill" href="assets/slides.pdf" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v12H4z" stroke="currentColor" stroke-width="1.6"/><path d="M8 20h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 16v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            Slides
-          </a>
+        <div class="plot-box">
+          <div class="plot-title">BTCV+LiTs — AUROC vs Runtime</div>
+          <div id="plot_auroc_liver" class="plot"></div>
+        </div>
+        <div class="plot-box">
+          <div class="plot-title">RESC — AUROC vs Runtime</div>
+          <div id="plot_auroc_resc" class="plot"></div>
         </div>
       </div>
 
-      <div class="card" style="min-width: 260px;">
-        <h2 style="margin-bottom:8px;">Quick facts</h2>
-        <div class="muted" style="font-size:14px;line-height:1.6">
-          <div><b>Core idea:</b> 2D masked CNN autoregressive model on DINOv3 patch embeddings</div>
-          <div><b>Inference:</b> single forward pass (no kNN / memory bank)</div>
-          <div><b>Efficiency:</b> ~20 ms/image on RESC (A6000)</div>
-          <div><b>Benchmark:</b> BMAD (BraTS2021, BTCV+LiTs, RESC)</div>
+      <div style="height:14px;"></div>
+
+      <div class="plot-grid">
+        <div class="plot-box">
+          <div class="plot-title">BraTS2021 — AUPR vs Runtime</div>
+          <div id="plot_aupr_brats" class="plot"></div>
+        </div>
+        <div class="plot-box">
+          <div class="plot-title">BTCV+LiTs — AUPR vs Runtime</div>
+          <div id="plot_aupr_liver" class="plot"></div>
+        </div>
+        <div class="plot-box">
+          <div class="plot-title">RESC — AUPR vs Runtime</div>
+          <div id="plot_aupr_resc" class="plot"></div>
         </div>
       </div>
-    </div>
 
-    <div class="grid">
-      <div class="card">
+      <div class="muted center" style="margin-top:10px;font-size:13px;">
+        Note: runtime values are taken from your RESC runtime column (as in your LaTeX figure table).
+      </div>
+    </section>
+
+    <!-- Abstract -->
+    <section class="section">
+      <div class="card center">
         <h2>Abstract</h2>
-        <p>
+        <p style="max-width:900px;margin:0 auto;">
           DINO models provide rich patch-level representations that have recently enabled strong performance in unsupervised anomaly detection (UAD).
-          Most existing methods model patch embeddings independently, ignoring spatial relationships and often requiring large memory banks and costly comparisons.
-          We propose a simple and efficient framework that explicitly models spatial dependencies between DINOv3 embeddings using a 2D autoregressive (AR) CNN with masked (and optionally dilated) convolutions.
-          At test time, anomaly detection reduces to a single forward pass, enabling fast and memory-efficient inference.
-          We evaluate on BMAD (BraTS2021, BTCV+LiTs, RESC) and show competitive AUROC/AUPR while substantially reducing runtime and memory.
-        </p>
-
-        <h2 style="margin-top:18px;">Method overview</h2>
-        <p class="muted" style="margin-top:6px;">
-          We extract a patch grid of embeddings <span class="kbd">F = Φ(x) ∈ ℝ^{Hₚ×Wₚ×D}</span> and model the joint distribution with a raster-scan AR factorization.
-          A masked CNN predicts conditional means, and per-patch negative log-likelihood becomes the anomaly score.
-          Dilated masked convolutions expand receptive field under the AR constraint to reduce “local interpolation” effects in anatomically structured data.
+          Most existing methods extract patch embeddings from “normal” images and model them independently, ignoring spatial and neighborhood relationships between patches.
+          In addition, the normative distribution is often modeled as memory banks or prototype-based representations, which require storing large numbers of features and performing costly comparisons at inference time, leading to substantial memory and computational overhead.
+          In this work, we address both limitations by proposing a simple and efficient framework that explicitly models spatial and contextual dependencies between patch embeddings using a 2D autoregressive (AR) model.
+          Instead of storing embeddings or clustering prototypes, our approach learns a compact parametric model of the normative distribution via an AR convolutional neural network (CNN).
+          At test time, anomaly detection reduces to a single forward pass through the network and enables fast and memory-efficient inference.
+          We evaluate our method on the BMAD benchmark, which comprises three medical imaging datasets, and compare it against existing work including recent DINO-based methods.
+          Experimental results demonstrate that explicitly modeling spatial dependencies achieves competitive anomaly detection performance while substantially reducing inference time and memory requirements.
         </p>
       </div>
+    </section>
 
-      <div class="figure">
-        <!-- Put your teaser figure here -->
-        <img src="assets/teaser.png" alt="Teaser figure">
-        <div class="figcap">
-          <b>Figure:</b> Replace with your raster-scan + masked/dilated conv figure (or a 1-slide method diagram).
-          Save it as <span class="kbd">assets/teaser.png</span>.
-        </div>
-      </div>
-    </div>
-
-    <div style="height:16px;"></div>
-
-    <div class="grid">
-      <div class="figure">
-        <img src="assets/results_runtime.png" alt="Runtime vs performance plot">
-        <div class="figcap">
-          <b>Runtime vs. performance:</b> Add your plot (e.g., Fig. “results_Runtime.pdf” exported to PNG).
-          Save as <span class="kbd">assets/results_runtime.png</span>.
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Highlights</h2>
-        <ul style="margin:10px 0 0 18px;line-height:1.6;color:var(--fg);">
-          <li>Explicit spatial density modeling on the 2D DINO embedding grid.</li>
-          <li>No memory bank / nearest-neighbor retrieval at inference time.</li>
-          <li>Fast &amp; low-memory inference (single forward pass).</li>
-          <li>Dilated masked conv ablation to probe spatial scale effects.</li>
-        </ul>
-
-        <div style="height:10px;"></div>
-        <p class="note">
-          Tip: for GitHub Pages, put all images under <span class="kbd">assets/</span> and link them as above.
-        </p>
-      </div>
-    </div>
-
-    <div style="height:16px;"></div>
-
-    <div class="card">
-      <h2>Results (snapshot)</h2>
-      <p class="muted" style="margin-top:6px;">
-        Replace the numbers below with the exact values you want to present (or keep it minimal and link to the paper).
-      </p>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Method</th>
-            <th>BraTS2021 (AUROC / AUPR)</th>
-            <th>BTCV+LiTs (AUROC / AUPR)</th>
-            <th>RESC (AUROC / AUPR)</th>
-            <th>RESC Runtime</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><b>Ours (standard conv)</b></td>
-            <td>97.87 ± 0.24 / 64.70 ± 3.56</td>
-            <td>97.32 ± 0.24 / 8.44 ± 1.09</td>
-            <td>94.39 ± 0.10 / 56.16 ± 1.08</td>
-            <td>20 ms</td>
-          </tr>
-          <tr>
-            <td><b>Ours (dilated conv)</b></td>
-            <td>98.35 ± 0.02 / 72.42 ± 0.47</td>
-            <td>96.39 ± 0.04 / 5.51 ± 0.26</td>
-            <td>93.09 ± 0.19 / 42.34 ± 1.07</td>
-            <td>20 ms</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <p class="note">
-        If you prefer, you can embed a screenshot of your full table instead of re-typing it.
-      </p>
-    </div>
-
-    <div style="height:16px;"></div>
-
-    <div class="grid">
-      <div class="card">
+    <!-- Citation -->
+    <section class="section">
+      <div class="card center">
         <h2>Citation</h2>
-        <p class="muted" style="margin-top:6px;">
-          Update the BibTeX entry after acceptance (authors, venue, year).
-        </p>
-        <div class="codebox">
+        <p class="muted">Update this BibTeX entry with the final venue/year once available.</p>
+        <div class="codebox" style="max-width:900px;margin:0 auto;">
 <pre>@inproceedings{erdil2025spatialar,
   title     = {Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection},
-  author    = {Anonymized Authors},
-  booktitle = {Proceedings of MICCAI},
+  author    = {Erdil, Ertunc and Schulthess, Nico and Tombak, Guney and Erdil, Ertunc},
+  booktitle = {Proceedings of ...},
   year      = {2025}
 }</pre>
         </div>
       </div>
+    </section>
 
-      <div class="card">
-        <h2>Materials</h2>
-        <ul style="margin:10px 0 0 18px;line-height:1.6;">
-          <li><a href="assets/paper.pdf" target="_blank" rel="noopener">Paper PDF</a></li>
-          <li><a href="assets/supp.pdf" target="_blank" rel="noopener">Supplementary</a></li>
-          <li><a href="assets/poster.pdf" target="_blank" rel="noopener">Poster</a></li>
-          <li><a href="https://github.com/YOUR_USERNAME/YOUR_REPO" target="_blank" rel="noopener">Code (GitHub)</a></li>
-        </ul>
-        <p class="note">
-          Add <span class="kbd">assets/supp.pdf</span> only if you have it.
-        </p>
-      </div>
-    </div>
-
-    <div class="footer">
-      <div>© <span id="year"></span> • Project page for “Spatial AR Modeling of DINOv3 Embeddings for UAD”.</div>
-      <div class="muted">Built as a single static <span class="kbd">index.html</span> for GitHub Pages.</div>
-    </div>
-
+    <div class="divider"></div>
+    <div class="footer">© <span id="year"></span> — Project page</div>
   </div>
 
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    // ===== Data (from your LaTeX table in the paper) =====
+    // Runtime is the "RESC runtime" column you reported (ms).
+    // For PatchCore on BraTS, AUROC is N/A -> excluded from BraTS plots.
+
+    const METHODS = [
+      {name:"DRAEM",        runtime:130, auroc:{brats:[63.85,16.37], liver:[89.42,4.96], resc:[88.81,3.95]}, aupr:{brats:[14.61,7.94], liver:[7.03,4.79], resc:[38.05,9.94]}},
+      {name:"UTRAD",        runtime:42,  auroc:{brats:[47.47,3.78],  liver:[85.54,0.36], resc:[94.62,0.11]}, aupr:{brats:[3.11,0.25],  liver:[1.36,0.04], resc:[49.57,1.20]}},
+      {name:"RD4AD",        runtime:117, auroc:{brats:[97.85,0.05],  liver:[95.54,1.73], resc:[96.84,0.23]}, aupr:{brats:[52.98,1.25], liver:[4.71,1.80], resc:[64.77,3.33]}},
+      {name:"STFPM",        runtime:111, auroc:{brats:[96.84,0.58],  liver:[96.30,0.15], resc:[95.11,0.31]}, aupr:{brats:[43.86,5.28], liver:[5.44,0.29], resc:[54.10,1.02]}},
+      {name:"PaDiM",        runtime:129, auroc:{brats:[83.59,0.80],  liver:[90.35,0.17], resc:[91.88,0.07]}, aupr:{brats:[7.02,0.32],  liver:[1.76,0.03], resc:[33.09,1.73]}},
+      {name:"PatchCore",    runtime:218, auroc:{brats:null,          liver:[96.63,0.00], resc:[97.57,0.01]}, aupr:{brats:null,          liver:[6.00,0.01], resc:[72.77,0.06]}},
+      {name:"CFA",          runtime:116, auroc:{brats:[97.33,0.09],  liver:[97.14,0.13], resc:[93.11,0.02]}, aupr:{brats:[54.67,0.69], liver:[7.13,0.41], resc:[30.84,0.09]}},
+      {name:"CFLOW",        runtime:219, auroc:{brats:[94.93,0.71],  liver:[92.88,2.17], resc:[94.68,0.05]}, aupr:{brats:[34.99,6.26], liver:[3.46,0.70], resc:[52.23,1.19]}},
+
+      {name:"AnomalyDINO (v2-S)", runtime:984, auroc:{brats:[97.71,0.00], liver:[97.24,0.00], resc:[94.04,0.00]}, aupr:{brats:[58.69,0.00], liver:[17.91,0.00], resc:[50.45,0.00]}},
+      {name:"AnomalyDINO (v3-S)", runtime:585, auroc:{brats:[98.38,0.00], liver:[96.98,0.00], resc:[96.93,0.00]}, aupr:{brats:[69.49,0.00], liver:[5.35,0.00],  resc:[63.40,0.00]}},
+      {name:"DPMM (v2-S)",        runtime:58,  auroc:{brats:[91.16,3.72],  liver:[96.30,0.94], resc:[86.47,1.84]}, aupr:{brats:[29.18,6.74], liver:[7.05,1.78], resc:[34.99,2.79]}},
+      {name:"DPMM (v3-S)",        runtime:149, auroc:{brats:[96.12,0.55],  liver:[90.48,1.05], resc:[86.94,7.76]}, aupr:{brats:[48.09,6.62], liver:[1.94,0.25], resc:[37.70,17.83]}},
+
+      {name:"Ours (standard conv)", runtime:20, auroc:{brats:[97.87,0.24], liver:[97.32,0.24], resc:[94.39,0.10]}, aupr:{brats:[64.70,3.56], liver:[8.44,1.09],  resc:[56.16,1.08]}},
+      {name:"Ours (dilated conv)",  runtime:20, auroc:{brats:[98.35,0.02], liver:[96.39,0.04], resc:[93.09,0.19]}, aupr:{brats:[72.42,0.47], liver:[5.51,0.26],  resc:[42.34,1.07]}},
+    ];
+
+    function makeTraces(metricKey, datasetKey){
+      const traces = [];
+      for (const m of METHODS){
+        const v = m[metricKey][datasetKey];
+        if (!v) continue;
+
+        const mean = v[0], std = v[1];
+        const x = m.runtime;
+
+        const hover =
+          `<b>${m.name}</b><br>` +
+          `${datasetKey.toUpperCase()}<br>` +
+          `${metricKey.toUpperCase()}: ${mean.toFixed(2)} ± ${std.toFixed(2)}<br>` +
+          `Runtime: ${x} ms`;
+
+        traces.push({
+          x: [x],
+          y: [mean],
+          type: "scatter",
+          mode: "markers",
+          name: m.name,
+          hovertemplate: hover + "<extra></extra>",
+          error_y: {type:"data", array:[std], visible:(std>0)},
+          marker: {size: 11, line:{width:1}}
+        });
+      }
+      return traces;
+    }
+
+    function baseLayout(yTitle){
+      const isDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const fg = getComputedStyle(document.documentElement).getPropertyValue('--fg').trim();
+      const muted = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim();
+      const border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
+      const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+
+      return {
+        margin: {l: 58, r: 16, t: 10, b: 52},
+        paper_bgcolor: bg,
+        plot_bgcolor: bg,
+        showlegend: false,
+        xaxis: {
+          title: "Runtime [ms]",
+          type: "log",
+          gridcolor: border,
+          zeroline: false,
+          tickfont: {color: muted},
+          titlefont: {color: muted}
+        },
+        yaxis: {
+          title: yTitle,
+          gridcolor: border,
+          zeroline: false,
+          tickfont: {color: muted},
+          titlefont: {color: muted}
+        },
+        font: {color: fg},
+      };
+    }
+
+    function renderAll(){
+      const config = {responsive:true, displayModeBar:true};
+
+      Plotly.newPlot("plot_auroc_brats", makeTraces("auroc","brats"), baseLayout("AUROC [%]"), config);
+      Plotly.newPlot("plot_auroc_liver", makeTraces("auroc","liver"), baseLayout("AUROC [%]"), config);
+      Plotly.newPlot("plot_auroc_resc",  makeTraces("auroc","resc"),  baseLayout("AUROC [%]"), config);
+
+      Plotly.newPlot("plot_aupr_brats", makeTraces("aupr","brats"), baseLayout("AUPR [%]"), config);
+      Plotly.newPlot("plot_aupr_liver", makeTraces("aupr","liver"), baseLayout("AUPR [%]"), config);
+      Plotly.newPlot("plot_aupr_resc",  makeTraces("aupr","resc"),  baseLayout("AUPR [%]"), config);
+    }
+
+    renderAll();
+
+    // Re-render if theme changes (optional)
+    if (window.matchMedia){
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+        renderAll();
+      });
+    }
   </script>
 </body>
 </html>
