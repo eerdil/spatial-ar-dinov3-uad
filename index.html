@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection</title>
+
+  <!-- Open Graph / social preview -->
+  <meta property="og:title" content="Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection" />
+  <meta property="og:description" content="A simple and efficient spatial autoregressive model on DINOv3 embeddings for UAD. Fast, memory-efficient inference." />
+  <meta property="og:type" content="website" />
+  <!-- Put a social preview image in your repo and update this -->
+  <meta property="og:image" content="assets/teaser.png" />
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --fg:#111827;
+      --muted:#4b5563;
+      --border:#e5e7eb;
+      --card:#f9fafb;
+      --link:#2563eb;
+      --link2:#1d4ed8;
+      --codebg:#0b1020;
+      --codefg:#e5e7eb;
+      --pill:#eef2ff;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0b0f19;
+        --fg:#e5e7eb;
+        --muted:#9ca3af;
+        --border:#1f2937;
+        --card:#0f1626;
+        --link:#60a5fa;
+        --link2:#93c5fd;
+        --codebg:#0a0d14;
+        --codefg:#e5e7eb;
+        --pill:#111a33;
+      }
+    }
+    html,body{background:var(--bg);color:var(--fg);margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
+    a{color:var(--link);text-decoration:none}
+    a:hover{color:var(--link2);text-decoration:underline}
+    .wrap{max-width:980px;margin:0 auto;padding:28px 18px 60px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:18px;margin-bottom:22px}
+    .title{font-size:28px;line-height:1.2;margin:0}
+    .subtitle{margin:8px 0 0;color:var(--muted);font-size:15px}
+    .authors{margin-top:10px;color:var(--muted);font-size:15px}
+    .pillrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .pill{display:inline-flex;align-items:center;gap:8px;background:var(--pill);border:1px solid var(--border);padding:8px 10px;border-radius:999px;font-size:14px}
+    .pill svg{width:16px;height:16px}
+    .grid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:18px;margin-top:18px}
+    @media (max-width: 860px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+    h2{font-size:18px;margin:0 0 10px}
+    p{margin:10px 0;color:var(--fg);line-height:1.55}
+    .muted{color:var(--muted)}
+    .figure{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg)}
+    .figure img{display:block;width:100%;height:auto}
+    .figcap{padding:10px 12px;border-top:1px solid var(--border);color:var(--muted);font-size:13px;line-height:1.45}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;background:var(--bg);border:1px solid var(--border);padding:2px 6px;border-radius:6px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{border-bottom:1px solid var(--border);padding:10px 10px;vertical-align:top}
+    th{text-align:left;color:var(--muted);font-weight:600}
+    .note{font-size:13px;color:var(--muted);margin-top:8px}
+    .codebox{background:var(--codebg);color:var(--codefg);border-radius:14px;padding:14px;overflow:auto;border:1px solid var(--border)}
+    pre{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:13px;line-height:1.5}
+    .footer{margin-top:26px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="topbar">
+      <div>
+        <h1 class="title">Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection</h1>
+        <div class="subtitle">MICCAI 2025 submission (anonymized) • BMAD benchmark (BraTS2021, BTCV+LiTs, RESC)</div>
+        <div class="authors">
+          <span class="muted">Authors:</span> Anonymized Authors
+          <!-- After acceptance, replace with real author list + affiliations -->
+        </div>
+
+        <div class="pillrow">
+          <a class="pill" href="assets/paper.pdf" target="_blank" rel="noopener">
+            <!-- icon -->
+            <svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l3 3v15a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Z" stroke="currentColor" stroke-width="1.6"/><path d="M14 3v4a2 2 0 0 0 2 2h4" stroke="currentColor" stroke-width="1.6"/></svg>
+            Paper (PDF)
+          </a>
+
+          <a class="pill" href="https://github.com/YOUR_USERNAME/YOUR_REPO" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M9 19c-4 1.5-4-2.5-5-3m10 6v-3.5c0-1 .1-1.4-.5-2 2.2-.3 4.5-1.1 4.5-5A4 4 0 0 0 17 8a3.7 3.7 0 0 0-.1-3S16 4.7 14 6a13.4 13.4 0 0 0-5 0C7 4.7 6.1 5 6.1 5A3.7 3.7 0 0 0 6 8a4 4 0 0 0-1 2.9c0 3.9 2.3 4.7 4.5 5-.4.4-.5 1-.5 2V22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Code
+          </a>
+
+          <a class="pill" href="assets/poster.pdf" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M7 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            Poster
+          </a>
+
+          <a class="pill" href="assets/slides.pdf" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v12H4z" stroke="currentColor" stroke-width="1.6"/><path d="M8 20h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 16v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            Slides
+          </a>
+        </div>
+      </div>
+
+      <div class="card" style="min-width: 260px;">
+        <h2 style="margin-bottom:8px;">Quick facts</h2>
+        <div class="muted" style="font-size:14px;line-height:1.6">
+          <div><b>Core idea:</b> 2D masked CNN autoregressive model on DINOv3 patch embeddings</div>
+          <div><b>Inference:</b> single forward pass (no kNN / memory bank)</div>
+          <div><b>Efficiency:</b> ~20 ms/image on RESC (A6000)</div>
+          <div><b>Benchmark:</b> BMAD (BraTS2021, BTCV+LiTs, RESC)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Abstract</h2>
+        <p>
+          DINO models provide rich patch-level representations that have recently enabled strong performance in unsupervised anomaly detection (UAD).
+          Most existing methods model patch embeddings independently, ignoring spatial relationships and often requiring large memory banks and costly comparisons.
+          We propose a simple and efficient framework that explicitly models spatial dependencies between DINOv3 embeddings using a 2D autoregressive (AR) CNN with masked (and optionally dilated) convolutions.
+          At test time, anomaly detection reduces to a single forward pass, enabling fast and memory-efficient inference.
+          We evaluate on BMAD (BraTS2021, BTCV+LiTs, RESC) and show competitive AUROC/AUPR while substantially reducing runtime and memory.
+        </p>
+
+        <h2 style="margin-top:18px;">Method overview</h2>
+        <p class="muted" style="margin-top:6px;">
+          We extract a patch grid of embeddings <span class="kbd">F = Φ(x) ∈ ℝ^{Hₚ×Wₚ×D}</span> and model the joint distribution with a raster-scan AR factorization.
+          A masked CNN predicts conditional means, and per-patch negative log-likelihood becomes the anomaly score.
+          Dilated masked convolutions expand receptive field under the AR constraint to reduce “local interpolation” effects in anatomically structured data.
+        </p>
+      </div>
+
+      <div class="figure">
+        <!-- Put your teaser figure here -->
+        <img src="assets/teaser.png" alt="Teaser figure">
+        <div class="figcap">
+          <b>Figure:</b> Replace with your raster-scan + masked/dilated conv figure (or a 1-slide method diagram).
+          Save it as <span class="kbd">assets/teaser.png</span>.
+        </div>
+      </div>
+    </div>
+
+    <div style="height:16px;"></div>
+
+    <div class="grid">
+      <div class="figure">
+        <img src="assets/results_runtime.png" alt="Runtime vs performance plot">
+        <div class="figcap">
+          <b>Runtime vs. performance:</b> Add your plot (e.g., Fig. “results_Runtime.pdf” exported to PNG).
+          Save as <span class="kbd">assets/results_runtime.png</span>.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Highlights</h2>
+        <ul style="margin:10px 0 0 18px;line-height:1.6;color:var(--fg);">
+          <li>Explicit spatial density modeling on the 2D DINO embedding grid.</li>
+          <li>No memory bank / nearest-neighbor retrieval at inference time.</li>
+          <li>Fast &amp; low-memory inference (single forward pass).</li>
+          <li>Dilated masked conv ablation to probe spatial scale effects.</li>
+        </ul>
+
+        <div style="height:10px;"></div>
+        <p class="note">
+          Tip: for GitHub Pages, put all images under <span class="kbd">assets/</span> and link them as above.
+        </p>
+      </div>
+    </div>
+
+    <div style="height:16px;"></div>
+
+    <div class="card">
+      <h2>Results (snapshot)</h2>
+      <p class="muted" style="margin-top:6px;">
+        Replace the numbers below with the exact values you want to present (or keep it minimal and link to the paper).
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>BraTS2021 (AUROC / AUPR)</th>
+            <th>BTCV+LiTs (AUROC / AUPR)</th>
+            <th>RESC (AUROC / AUPR)</th>
+            <th>RESC Runtime</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Ours (standard conv)</b></td>
+            <td>97.87 ± 0.24 / 64.70 ± 3.56</td>
+            <td>97.32 ± 0.24 / 8.44 ± 1.09</td>
+            <td>94.39 ± 0.10 / 56.16 ± 1.08</td>
+            <td>20 ms</td>
+          </tr>
+          <tr>
+            <td><b>Ours (dilated conv)</b></td>
+            <td>98.35 ± 0.02 / 72.42 ± 0.47</td>
+            <td>96.39 ± 0.04 / 5.51 ± 0.26</td>
+            <td>93.09 ± 0.19 / 42.34 ± 1.07</td>
+            <td>20 ms</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="note">
+        If you prefer, you can embed a screenshot of your full table instead of re-typing it.
+      </p>
+    </div>
+
+    <div style="height:16px;"></div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Citation</h2>
+        <p class="muted" style="margin-top:6px;">
+          Update the BibTeX entry after acceptance (authors, venue, year).
+        </p>
+        <div class="codebox">
+<pre>@inproceedings{erdil2025spatialar,
+  title     = {Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection},
+  author    = {Anonymized Authors},
+  booktitle = {Proceedings of MICCAI},
+  year      = {2025}
+}</pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Materials</h2>
+        <ul style="margin:10px 0 0 18px;line-height:1.6;">
+          <li><a href="assets/paper.pdf" target="_blank" rel="noopener">Paper PDF</a></li>
+          <li><a href="assets/supp.pdf" target="_blank" rel="noopener">Supplementary</a></li>
+          <li><a href="assets/poster.pdf" target="_blank" rel="noopener">Poster</a></li>
+          <li><a href="https://github.com/YOUR_USERNAME/YOUR_REPO" target="_blank" rel="noopener">Code (GitHub)</a></li>
+        </ul>
+        <p class="note">
+          Add <span class="kbd">assets/supp.pdf</span> only if you have it.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>© <span id="year"></span> • Project page for “Spatial AR Modeling of DINOv3 Embeddings for UAD”.</div>
+      <div class="muted">Built as a single static <span class="kbd">index.html</span> for GitHub Pages.</div>
+    </div>
+
+  </div>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
