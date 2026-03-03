@@ -1,0 +1,30 @@
+build/
+dist/
+*.egg-info/
+**/__pycache__/
+
+**/.ipynb_checkpoints
+**/.ipynb_checkpoints/**
+
+**/notebooks
+
+# Ignore shell scripts
+*.sh
+
+# Ignore swap files
+*.swp
+
+# Ignore vscode directory
+.vscode/
+*.pyc
+logs/
+logs_copy/
+results/
+visual_results_paper/
+quantitative_results_visual/
+wandb/
+outputs_causal_bidirectional_ks3/
+pretrained_models/
+data/brats/
+data/bmad/
+data/resc/
