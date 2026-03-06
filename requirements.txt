@@ -8,3 +8,4 @@ Pillow
 scikit-learn
 tqdm
 omegaconf
+termcolor

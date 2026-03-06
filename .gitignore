@@ -11,6 +11,9 @@ dist/
 # Ignore shell scripts
 *.sh
 
+# Ignore environment files
+*.env
+
 # Ignore swap files
 *.swp
 

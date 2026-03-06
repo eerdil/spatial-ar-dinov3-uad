@@ -1,19 +1,18 @@
 import argparse
 import os
-from models.autoregressive2d_trans import AR2DTransformer
 import torch
 import random
 import numpy as np
-import wandb
+try:
+    import wandb
+    WANDB_AVAILABLE = True
+except ImportError:
+    WANDB_AVAILABLE = False
 
 from datetime import datetime
 
 from data import AVAILABLE_DATASETS, get_anomaly_loader, get_train_loader
-
-# from data.brats import get_anomaly_loader, get_train_loader
-from models.autoregressive2d import AR2DModel, AR2DModelBottleneck, AR2DModelDilated
-from models.autoregressive2d_trans import AR2DTransformer
-from models.autoencoder import AE2DModel, SpatialBottleneckAE2D
+from models.autoregressive2d import AR2DModelDilated
 from models.dinov3_utils import load_dinov3_models, extract_dino_tokens_2d
 from config.paths import PROJECT_PATH, DATASET_PATH, checkpoint_paths
 from ar.train_loops import train_ar2d_model
@@ -31,11 +30,6 @@ def set_seed(seed: int = 42):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    # (Optional, stricter but can be slower / may error on some ops)
-    # torch.use_deterministic_algorithms(True)
-    # os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
-
-
 def main():
     # === ARGUMENT PARSING ===
     parser = argparse.ArgumentParser(description="Visualize DINOv3 features.")
@@ -45,13 +39,6 @@ def main():
         default="dinov3_vits16",
         choices=checkpoint_paths.keys(),
         help="Type of DINOv3 model to use.",
-    )
-    parser.add_argument(
-        "--ar_model",
-        type=str,
-        default="conv",
-        choices=["conv", "transformer"],
-        help="Type of autoregressive model to use.",
     )
     parser.add_argument(
         "--dataset_name",
@@ -85,26 +72,22 @@ def main():
         "--val_interval", type=int, default=1, help="Validate every N epochs."
     )
     parser.add_argument(
-        "--non_causal",
-        action="store_true",
-        help="Use non-causal convs (see past and future pixels).",
-    )
-    parser.add_argument(
-        "--center_masked_first",
-        action="store_true",
-        help="Use center-masked convs (see all neighbors except center pixel).",
+        "--mode",
+        type=str,
+        default="causal",
+        choices=["causal", "bidirectional", "standard"],
+        help=(
+            "AR model operating mode. "
+            "'causal': autoregressive prediction in raster-scan order (default). "
+            "'bidirectional': center-masked first layer gives full 360-degree spatial context. "
+            "'standard': standard convolutions with no masking (non-causal autoencoder-style)."
+        ),
     )
     parser.add_argument(
         "--kernel_size",
         type=int,
         default=3,
         help="Kernel size for AR model convolution.",
-    )
-    parser.add_argument(
-        "--mask_radius",
-        type=float,
-        default=None,
-        help="Radius for neighborhood masking in transformer.",
     )
     parser.add_argument(
         "--seed", type=int, default=42, help="Random seed for reproducibility."
@@ -115,16 +98,21 @@ def main():
         help="Use random seed - overwrites --seed.",
     )
     parser.add_argument(
+        "--use_wandb",
+        action="store_true",
+        help="Enable logging to Weights & Biases.",
+    )
+    parser.add_argument(
         "--wandb_project_name",
         type=str,
         default="AR_DinoV3_Anomaly_Detection",
-        help="WandB project name.",
+        help="WandB project name (used only if --use_wandb is set).",
     )
     parser.add_argument(
         "--dilation_schedule",
         type=int,
         nargs="+",
-        default=[2, 4, 4, 8],
+        default=[4, 4, 4, 4],
         help="Layer sizes, e.g. --layers 2 4 4 8",
     )
     args = parser.parse_args()
@@ -137,12 +125,13 @@ def main():
     epochs = args.epochs
     lr = args.lr
     val_interval = args.val_interval
-    causal = not args.non_causal
+    mode = args.mode
+    causal = (mode == "causal")
+    center_masked_first = (mode == "bidirectional")
     kernel_size = args.kernel_size
-    center_masked_first = args.center_masked_first
     seed = args.seed
-    mask_radius = args.mask_radius
     random_seed = args.random_seed
+    use_wandb = args.use_wandb
     wandb_project_name = args.wandb_project_name
     dilation_schedule = args.dilation_schedule
 
@@ -153,27 +142,19 @@ def main():
     set_seed(seed)
 
     # === SET EXPERIMENT NAME AND CREATE PATHS TO LOG RESULTS ===
-    mode_str = (
-        "causal" if causal else ("bidirect" if center_masked_first else "autoenc")
-    )
-
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     dilation_schedule_str = "x".join(map(str, dilation_schedule))
-
-    if args.ar_model == "conv":
-        if causal is False and center_masked_first is False:
-            exp_name = f"{model_type}_{dataset_name}_{mode_str}_ks{kernel_size}_seed{seed}_ep{epochs}_img{img_size}_{timestamp}"
-        else:
-            exp_name = f"{model_type}_{dataset_name}_{mode_str}_ks{kernel_size}_dil{dilation_schedule_str}_seed{seed}_ep{epochs}_img{img_size}_{timestamp}"
-    elif args.ar_model == "transformer":
-        exp_name = f"{model_type}_{dataset_name}_{mode_str}_ar_model{args.ar_model}_{mask_radius}_seed{seed}_ep{epochs}_img{img_size}_{timestamp}"
+    exp_name = f"{model_type}_{dataset_name}_{mode}_ks{kernel_size}_dil{dilation_schedule_str}_seed{seed}_ep{epochs}_img{img_size}_{timestamp}"
     output_path = os.path.join(PROJECT_PATH, f"results/{exp_name}")
 
     # === INITIALIZE WANDB ===
-    run = wandb.init(project=wandb_project_name, name=exp_name)
-    print("[W&B] Run initialized")
-    print("[W&B] Run dir:", run.dir)
-    print("[W&B] Run URL:", run.url)
+    if use_wandb:
+        if not WANDB_AVAILABLE:
+            raise ImportError("wandb is not installed. Install it with: pip install wandb")
+        run = wandb.init(project=wandb_project_name, name=exp_name)
+        print("[W&B] Run initialized")
+        print("[W&B] Run dir:", run.dir)
+        print("[W&B] Run URL:", run.url)
 
     # === GET TRAIN/TEST/VAL DATA LOADERS ===
     dataloader_train = get_train_loader(
@@ -226,65 +207,16 @@ def main():
     print(f"DINO feature channels: {C}")
 
     # === CREATE MODEL ===
-    print(f"Using {'causal' if causal else 'non-causal'} single AR2D model.")
-
-    if args.ar_model == "conv":
-        if causal is False and center_masked_first is False:
-            print("Using Autoencoder-style 2D model (non-causal, standard convs).")
-            # ar2d = AE2DModel(
-            #     in_channels=C,
-            #     hidden_channels=256,
-            #     latent_channels=64,
-            #     n_layers=5,
-            #     kernel_size=kernel_size,
-            # ).to(device)
-
-            ar2d = SpatialBottleneckAE2D(
-                in_channels=C,
-                hidden_channels=256,
-                bottleneck_channels=128,
-                n_layers=5,
-                kernel_size=kernel_size,
-            ).to(device)
-
-        else:
-            print("Using Convolutional AR2D model.")
-            # ar2d = AR2DModel(
-            #     in_channels=C,
-            #     hidden_channels=256,
-            #     n_layers=5,
-            #     kernel_size=kernel_size,
-            #     causal=causal,
-            #     center_masked_first=center_masked_first,
-            # ).to(device)
-
-            ar2d = AR2DModelDilated(
-                in_channels=C,
-                hidden_channels=256,
-                n_layers=5,
-                kernel_size=kernel_size,
-                causal=causal,
-                center_masked_first=center_masked_first,
-                dilation_schedule=dilation_schedule,
-            ).to(device)
-
-            # ar2d = AR2DModelBottleneck(
-            #     in_channels=C,
-            #     hidden_channels=256,
-            #     n_layers=5,
-            #     kernel_size=kernel_size,
-            #     bottleneck_channels=64,
-            #     bottleneck_layers=1
-            # ).to(device)
-    elif args.ar_model == "transformer":
-        ar2d = AR2DTransformer(
-            in_channels=C,
-            embed_dim=256,
-            depth=2,
-            num_heads=4,
-            causal=causal,
-            mask_radius=mask_radius,
-        ).to(device)
+    print(f"Using AR2DModelDilated in '{mode}' mode.")
+    ar2d = AR2DModelDilated(
+        in_channels=C,
+        hidden_channels=256,
+        n_layers=5,
+        kernel_size=kernel_size,
+        causal=causal,
+        center_masked_first=center_masked_first,
+        dilation_schedule=dilation_schedule,
+    ).to(device)
 
     ar2d = train_ar2d_model(
         dino_model=dino,
@@ -300,6 +232,7 @@ def main():
         img_size=img_size,
         imgs_vis=imgs_vis,
         labels_vis=labels_vis,
+        use_wandb=use_wandb,
     )
 
 
