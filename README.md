@@ -1,6 +1,6 @@
-# AutoregressiveAnomDino
+# Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection
 
-Source code for the paper **"Autoregressive Anomaly Detection with DINOv3 Features"**.
+Source code for the paper **"Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection"**.
 
 ## Overview
 
@@ -162,9 +162,10 @@ All paths have sensible defaults relative to the project root. To override any o
 If you use this code, please cite our paper:
 
 ```bibtex
-@article{TODO,
-  title={TODO},
-  author={TODO},
-  year={2025}
+@article{erdil2026spatial,
+  title={Spatial Autoregressive Modeling of DINOv3 Embeddings for Unsupervised Anomaly Detection},
+  author={Erdil, Ertunc and Schulthess, Nico and Tombak, Guney and Konukoglu, Ender},
+  journal={arXiv preprint arXiv:2603.02974},
+  year={2026}
 }
 ```
