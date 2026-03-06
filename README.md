@@ -99,7 +99,7 @@ python train.py \
   --epochs 40 \
   --lr 1e-3 \
   --kernel_size 3 \
-  --dilation_schedule 4 4 4 8 \
+  --dilation_schedule 4 4 4 4 \
   --center_masked_first \
   --wandb_project_name my_project
 ```
@@ -116,7 +116,7 @@ python train.py \
 | `--epochs` | `40` | Number of training epochs |
 | `--lr` | `1e-3` | Learning rate (AdamW) |
 | `--kernel_size` | `3` | Convolution kernel size |
-| `--dilation_schedule` | `4 4 4 8` | Per-layer dilation values |
+| `--dilation_schedule` | `4 4 4 4` | Per-layer dilation values |
 | `--non_causal` | off | Use standard (non-causal) convolutions |
 | `--center_masked_first` | off | Bidirectional mode: predict center from all neighbors |
 | `--seed` | `42` | Random seed |
