@@ -4,7 +4,7 @@ Source code for the paper **"Spatial Autoregressive Modeling of DINOv3 Embedding
 
 ## Overview
 
-Our method detects anomalies in images by training a lightweight **autoregressive (AR) model** to predict [DINOv3](https://github.com/facebookresearch/dinov2) feature maps. The AR model is trained exclusively on normal (healthy) images. At test time, anomalous regions produce feature patterns that the AR model cannot predict well — resulting in high reconstruction error, which directly serves as the anomaly map.
+Our method detects anomalies in images by training a lightweight **autoregressive (AR) model** to predict [DINOv3](https://github.com/facebookresearch/dinov3) feature maps. The AR model is trained exclusively on normal (healthy) images. At test time, anomalous regions produce feature patterns that the AR model cannot predict well — resulting in high reconstruction error, which directly serves as the anomaly map.
 
 **Key design choices:**
 - Frozen DINOv3 backbone (no fine-tuning) extracts rich semantic features
