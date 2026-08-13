@@ -25,17 +25,23 @@ def evaluate_ar2d_model(
     epoch=None,
     img_size=240,
     output_path=None,
+    loss_fn="mse",
 ):
     """
     Evaluate the AR model on an anomaly detection dataloader.
 
-    Computes MSE reconstruction loss, pixel-level AUROC, and AUPR by comparing
-    the squared per-channel prediction error (upsampled to img_size) against
-    ground-truth pixel masks.  Optionally generates a visualization grid for a
-    fixed set of images and saves metrics to a text file.
+    Computes the reconstruction loss (MSE or cosine, see `loss_fn`), pixel-level
+    AUROC, and AUPR by comparing the per-channel prediction error (upsampled to
+    img_size) against ground-truth pixel masks. Optionally generates a
+    visualization grid for a fixed set of images and saves metrics to a text file.
+
+    Args:
+        loss_fn: "mse" (default) uses mean squared per-channel error as both the
+                 training loss and the anomaly score. "cosine" uses 1 - cosine
+                 similarity between predicted and target feature vectors instead.
 
     Returns:
-        avg_loss: Mean MSE over all batches.
+        avg_loss: Mean loss over all batches.
         metrics: Dict with keys AUROC, AUPR, Time, Loss.
         output_path_visualizations: Path to the saved visualization image, or None.
     """
@@ -68,12 +74,18 @@ def evaluate_ar2d_model(
 
             total_time += end_time - start_time
 
-            loss = criterion(preds, feats_2d)
+            if loss_fn == "cosine":
+                feats_norm = F.normalize(feats_2d, dim=1)
+                preds_norm = F.normalize(preds, dim=1)
+                anomaly_maps = 1 - (feats_norm * preds_norm).sum(dim=1)  # [B, H, W]
+                loss = anomaly_maps.mean()
+            else:
+                loss = criterion(preds, feats_2d)
+                # 1) anomaly maps at token level
+                anomaly_maps = (preds - feats_2d).pow(2).mean(dim=1)
+
             running_loss += loss.item()
             n_batches += 1
-
-            # 1) anomaly maps at token level
-            anomaly_maps = (preds - feats_2d).pow(2).mean(dim=1)
 
             # 2) upsample to image resolution and add channel dim: [B,1,H,W]
             anomaly_maps_up = F.interpolate(
@@ -134,6 +146,7 @@ def evaluate_ar2d_model(
             img_size=img_size,
             output_dir=output_path_visualizations,
             epoch=epoch,
+            loss_fn=loss_fn,
         )
 
     return avg_loss, metrics, output_path_visualizations
@@ -207,6 +220,8 @@ def train_ar2d_model(
     imgs_vis=None,
     labels_vis=None,
     use_wandb=False,
+    grad_clip=None,
+    loss_fn="mse",
 ):
 
     dino_model.eval()
@@ -254,11 +269,18 @@ def train_ar2d_model(
             # 2) AR forward
             preds = ar_model(feats_2d_aug)  # [B, C, H, W]
 
-            # 3) reconstruction loss (per-location feature prediction)
-            loss = criterion(preds, feats_2d)
+            # 3) loss
+            if loss_fn == "cosine":
+                feats_norm = F.normalize(feats_2d, dim=1)
+                preds_norm = F.normalize(preds, dim=1)
+                loss = (1 - (feats_norm * preds_norm).sum(dim=1)).mean()
+            else:
+                loss = criterion(preds, feats_2d)
 
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
+            if grad_clip is not None:
+                nn.utils.clip_grad_norm_(ar_model.parameters(), max_norm=grad_clip)
             optimizer.step()
 
             running_loss += loss.item()
@@ -278,6 +300,7 @@ def train_ar2d_model(
             device=device,
             epoch=epoch,
             output_path=os.path.join(output_dir, "val"),
+            loss_fn=loss_fn,
         )
 
         # === TEST STEP ===
@@ -292,6 +315,7 @@ def train_ar2d_model(
             device=device,
             epoch=epoch,
             output_path=os.path.join(output_dir, "test"),
+            loss_fn=loss_fn,
         )
 
         # === SAVE BEST MODELS ===

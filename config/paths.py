@@ -22,6 +22,16 @@ DATASET_PATH = {
     'resc':  os.getenv("DATASET_RESC_PATH",  os.path.join(PROJECT_PATH, "data", "resc")),
 }
 
+# VisA — root directory containing one subfolder per category
+# (e.g. <VISA_ROOT>/candle, <VISA_ROOT>/capsules, ...), plus a shared
+# split_csv/1cls.csv. Override with the DATASET_VISA_PATH env var.
+_VISA_ROOT = os.getenv("DATASET_VISA_PATH", os.path.join(PROJECT_PATH, "data", "visa"))
+for _visa_category in (
+    "candle", "capsules", "cashew", "chewinggum", "fryum",
+    "macaroni1", "macaroni2", "pcb1", "pcb2", "pcb3", "pcb4", "pipe_fryum",
+):
+    DATASET_PATH[f"visa_{_visa_category}"] = os.path.join(_VISA_ROOT, _visa_category)
+
 
 checkpoint_paths = {
     'dinov3_vits16':         os.path.join(DINO_PATH, "dinov3_vits16_pretrain_lvd1689m-08c60483.pth"),

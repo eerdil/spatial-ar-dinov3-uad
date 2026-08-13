@@ -6,11 +6,18 @@ import torch.nn.functional as F
 from models.dinov3_utils import extract_dino_tokens_2d
 # from ar.anomaly_maps import compute_anomaly_maps_2d
 
-def compute_anomaly_maps_2d(feats_2d, preds):
+def compute_anomaly_maps_2d(feats_2d, preds, loss_fn="mse"):
     """
     Returns:
-        anomaly_maps: [B, H_tok, W_tok]  (per-location reconstruction error)
+        anomaly_maps: [B, H_tok, W_tok]  (per-location anomaly score)
+
+    loss_fn="mse":    per-token mean squared error across channels
+    loss_fn="cosine": per-token cosine distance in [0, 2]
     """
+    if loss_fn == "cosine":
+        feats_norm = F.normalize(feats_2d, dim=1)
+        preds_norm = F.normalize(preds, dim=1)
+        return 1 - (feats_norm * preds_norm).sum(dim=1)  # [B, H, W]
 
     # per-location MSE across channels
     mse = (preds - feats_2d).pow(2).mean(dim=1)                  # [B, H, W]
@@ -26,6 +33,7 @@ def visualize_anomaly_grid(
     img_size,
     output_dir,
     epoch=None,
+    loss_fn="mse",
 ):
     """
     Create a 5×N grid:
@@ -51,7 +59,7 @@ def visualize_anomaly_grid(
         feats_2d = extract_dino_tokens_2d(dino_model, imgs_vis_dev, device)  # [B, C, H, W]
         preds = ar_model(feats_2d)  # [B, C, H, W]
 
-        anomaly_maps = compute_anomaly_maps_2d(feats_2d, preds)  # [B, H_tok, W_tok]
+        anomaly_maps = compute_anomaly_maps_2d(feats_2d, preds, loss_fn=loss_fn)  # [B, H_tok, W_tok]
 
         # 2) upsample to image resolution
         B = imgs_vis_dev.size(0)

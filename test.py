@@ -92,6 +92,20 @@ if __name__ == "__main__":
         default=[4, 4, 4, 4],
         help="Layer sizes, e.g. --layers 2 4 4 8",
     )
+    parser.add_argument(
+        "--dropout",
+        type=float,
+        default=0.0,
+        help="Dropout probability used during training (must match the trained checkpoint, "
+             "since it changes the model's layer structure).",
+    )
+    parser.add_argument(
+        "--loss",
+        type=str,
+        default="mse",
+        choices=["mse", "cosine"],
+        help="Loss / anomaly score type used during training (must match the trained checkpoint).",
+    )
 
     args = parser.parse_args()
 
@@ -107,6 +121,8 @@ if __name__ == "__main__":
     experiment_name = args.experiment_name
     ckpt_name = args.ckpt_name
     dilation_schedule = args.dilation_schedule
+    dropout = args.dropout
+    loss_fn = args.loss
 
     output_path = os.path.join(PROJECT_PATH, f"results/{experiment_name}")
     checkpoint_path = os.path.join(output_path, f"ckpt/{ckpt_name}")
@@ -151,6 +167,7 @@ if __name__ == "__main__":
         causal=causal,
         center_masked_first=center_masked_first,
         dilation_schedule=dilation_schedule,
+        dropout=dropout,
     ).to(device)
 
     ar_model.load_state_dict(checkpoint["model_state_dict"])
@@ -172,6 +189,7 @@ if __name__ == "__main__":
         criterion=criterion,
         device=device,
         output_path=os.path.join(output_path, "test/"),
+        loss_fn=loss_fn,
     )
 
     log_dict = {"test/AUROC": metrics["AUROC"], "test/AUPR": metrics["AUPR"]}

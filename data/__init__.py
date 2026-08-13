@@ -9,6 +9,19 @@ _DATASET_REGISTRY = {
     "brats": "data.brats",
     "bmad": "data.bmad",
     "resc": "data.resc",
+    # VisA — all categories share the same module
+    "visa_candle":     "data.visa",
+    "visa_capsules":   "data.visa",
+    "visa_cashew":     "data.visa",
+    "visa_chewinggum": "data.visa",
+    "visa_fryum":      "data.visa",
+    "visa_macaroni1":  "data.visa",
+    "visa_macaroni2":  "data.visa",
+    "visa_pcb1":       "data.visa",
+    "visa_pcb2":       "data.visa",
+    "visa_pcb3":       "data.visa",
+    "visa_pcb4":       "data.visa",
+    "visa_pipe_fryum": "data.visa",
 }
 
 AVAILABLE_DATASETS: Sequence[str] = tuple(_DATASET_REGISTRY.keys())

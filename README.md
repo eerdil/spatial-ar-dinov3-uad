@@ -9,7 +9,8 @@ Our method detects anomalies in images by training a lightweight **autoregressiv
 **Key design choices:**
 - Frozen DINOv3 backbone (no fine-tuning) extracts rich semantic features
 - PixelCNN-style masked convolutions for autoregressive prediction
-- Trained with MSE loss on normal images only — no anomaly labels required at training time
+- Trained with MSE or cosine-distance loss on normal images only — no anomaly labels required at training time
+- Optional dropout and gradient clipping for regularization
 - Pixel-level anomaly maps evaluated with AUROC and AUPR
 
 ---
@@ -76,7 +77,9 @@ data/
         label/ *.png
 ```
 
-Supported dataset names: `brats`, `bmad`, `resc`.
+Supported dataset names: `brats`, `bmad`, `resc`, and the 12 [VisA](https://github.com/amazon-science/spot-diff) categories
+(`visa_candle`, `visa_capsules`, `visa_cashew`, `visa_chewinggum`, `visa_fryum`, `visa_macaroni1`,
+`visa_macaroni2`, `visa_pcb1`, `visa_pcb2`, `visa_pcb3`, `visa_pcb4`, `visa_pipe_fryum`).
 
 To use a custom dataset path, set the corresponding environment variable:
 
@@ -84,7 +87,27 @@ To use a custom dataset path, set the corresponding environment variable:
 export DATASET_BRATS_PATH=/path/to/brats
 export DATASET_BMAD_PATH=/path/to/bmad
 export DATASET_RESC_PATH=/path/to/resc
+export DATASET_VISA_PATH=/path/to/VisA   # root containing one subfolder per category
 ```
+
+### VisA dataset
+
+VisA uses the original per-category folder layout, not the `train/valid/test` structure above:
+
+```
+$DATASET_VISA_PATH/
+  candle/
+    Data/Images/{Normal,Anomaly}/*.JPG
+    ...
+  capsules/
+  ...
+  split_csv/
+    1cls.csv        # shared split file listing image/mask paths and normal/anomaly labels per category
+```
+
+Download VisA from the [official source](https://github.com/amazon-science/spot-diff) and point
+`DATASET_VISA_PATH` at the directory containing the per-category folders and `split_csv/`.
+Each `visa_<category>` dataset name (e.g. `visa_candle`) trains and evaluates on that single category.
 
 ---
 
@@ -100,7 +123,11 @@ python train.py \
   --lr 1e-3 \
   --kernel_size 3 \
   --dilation_schedule 4 4 4 4 \
-  --center_masked_first \
+  --mode causal \
+  --dropout 0.2 \
+  --grad_clip 1.0 \
+  --loss cosine \
+  --use_wandb \
   --wandb_project_name my_project
 ```
 
@@ -109,18 +136,21 @@ python train.py \
 | Argument | Default | Description |
 |----------|---------|-------------|
 | `--model` | `dinov3_vits16` | DINOv3 backbone variant |
-| `--ar_model` | `conv` | AR model type: `conv` or `transformer` |
-| `--dataset_name` | `brats` | Dataset: `brats`, `bmad`, `resc` |
+| `--dataset_name` | `brats` | Dataset: `brats`, `bmad`, `resc`, or a `visa_<category>` name |
 | `--img_size` | `448` | Input image resolution |
 | `--batch_size` | `64` | Training batch size |
 | `--epochs` | `40` | Number of training epochs |
 | `--lr` | `1e-3` | Learning rate (AdamW) |
 | `--kernel_size` | `3` | Convolution kernel size |
 | `--dilation_schedule` | `4 4 4 4` | Per-layer dilation values |
-| `--non_causal` | off | Use standard (non-causal) convolutions |
-| `--center_masked_first` | off | Bidirectional mode: predict center from all neighbors |
+| `--mode` | `causal` | `causal` (autoregressive), `bidirectional` (center-masked first layer), or `standard` (non-causal, no masking) |
+| `--dropout` | `0.0` | Dropout probability after each hidden ReLU (0 = disabled) |
+| `--grad_clip` | off | Max gradient norm for clipping (unset = disabled) |
+| `--loss` | `mse` | Training loss / anomaly score: `mse` or `cosine` |
 | `--seed` | `42` | Random seed |
-| `--wandb_project_name` | — | W&B project name for logging |
+| `--random_seed` | off | Use a random seed instead of `--seed` |
+| `--use_wandb` | off | Enable logging to Weights & Biases |
+| `--wandb_project_name` | `AR_DinoV3_Anomaly_Detection` | W&B project name (used only if `--use_wandb` is set) |
 
 Results and checkpoints are saved to `results/<experiment_name>/`.
 
@@ -133,13 +163,20 @@ python test.py \
   --dataset_name brats \
   --model dinov3_vits16 \
   --experiment_name <experiment_name> \
-  --ckpt_name model_best_val_aupr.pth
+  --ckpt_name model_best_val_aupr.pth \
+  --mode causal \
+  --dropout 0.2 \
+  --loss cosine
 ```
 
 `<experiment_name>` must match a folder in `results/`. Available checkpoint names:
 - `model_best_val_loss.pth`
 - `model_best_val_aupr.pth`
 - `model_best_test_aupr.pth`
+
+`--mode`, `--kernel_size`, `--dilation_schedule`, and `--dropout` must match the values used during
+training — `--dropout` in particular changes the model's layer structure, so a mismatch will fail to
+load the checkpoint. `--loss` should also match training so the anomaly score is computed the same way.
 
 ---
 
@@ -154,6 +191,15 @@ All paths have sensible defaults relative to the project root. To override any o
 | `DATASET_BRATS_PATH` | `data/brats/` | BraTS dataset root |
 | `DATASET_BMAD_PATH` | `data/bmad/` | BMAD dataset root |
 | `DATASET_RESC_PATH` | `data/resc/` | RESC dataset root |
+| `DATASET_VISA_PATH` | `data/visa/` | VisA root (contains one subfolder per category + `split_csv/`) |
+
+A convenient way to set these is to copy them into a `.env` file at the project root (already
+git-ignored) and load it before running:
+
+```bash
+set -a && source .env && set +a
+python train.py --dataset_name visa_candle ...
+```
 
 ---
 

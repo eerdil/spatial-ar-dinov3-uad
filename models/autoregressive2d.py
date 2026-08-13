@@ -1,6 +1,26 @@
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+
+def _reinit_masked_conv(conv):
+    """
+    Kaiming uniform init scaled by the number of *active* (unmasked) connections.
+
+    PyTorch's default Conv2d init assumes all kernel_h * kernel_w positions contribute,
+    but masked convs zero out a fraction of them at forward time. That mismatch makes
+    the output variance at init systematically too small, causing seed-dependent gradient
+    flow. We recompute fan_in using only the positions that are actually non-zero.
+    """
+    active = int(conv.mask[0, 0].sum().item())  # e.g. 4 for type-A 3x3, 5 for type-B
+    fan_in = conv.in_channels * active
+    # Match PyTorch's default Conv2d formula (a=sqrt(5) -> bound = 1/sqrt(fan_in))
+    bound_w = 1.0 / math.sqrt(fan_in) if fan_in > 0 else 0.0
+    nn.init.uniform_(conv.weight, -bound_w, bound_w)
+    if conv.bias is not None:
+        nn.init.uniform_(conv.bias, -bound_w, bound_w)
 
 
 class MaskedConv2d(nn.Conv2d):
@@ -96,6 +116,8 @@ class AR2DModelDilated(nn.Module):
                            The first entry applies to layer 0, subsequent entries
                            to middle layers by index, and the last entry is reused
                            for the final projection layer.
+        dropout: Dropout probability applied after each hidden-layer ReLU
+                 (0 = disabled). Not applied after the final projection layer.
     """
 
     def __init__(
@@ -107,6 +129,7 @@ class AR2DModelDilated(nn.Module):
         causal=True,
         center_masked_first=False,
         dilation_schedule=[4, 4, 4, 4],
+        dropout=0.0,
     ):
         super().__init__()
         self.causal = causal
@@ -138,6 +161,8 @@ class AR2DModelDilated(nn.Module):
                 kernel_size=kernel_size, padding=p0, dilation=d0,
             ))
         layers.append(nn.ReLU(inplace=True))
+        if dropout > 0.0:
+            layers.append(nn.Dropout(p=dropout))
 
         # --- Middle layers ---
         for i in range(1, n_layers - 1):
@@ -154,6 +179,8 @@ class AR2DModelDilated(nn.Module):
                     kernel_size=kernel_size, padding=p, dilation=d,
                 ))
             layers.append(nn.ReLU(inplace=True))
+            if dropout > 0.0:
+                layers.append(nn.Dropout(p=dropout))
 
         # --- Last layer: project back to input channel dimension ---
         dL = dilation_schedule[-1]
@@ -170,6 +197,10 @@ class AR2DModelDilated(nn.Module):
             ))
 
         self.net = nn.Sequential(*layers)
+
+        for m in self.net:
+            if isinstance(m, (MaskedConv2d, CenterMaskedConv2d)):
+                _reinit_masked_conv(m)
 
     def forward(self, x):
         return self.net(x)

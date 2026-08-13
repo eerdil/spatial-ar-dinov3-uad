@@ -115,6 +115,25 @@ def main():
         default=[4, 4, 4, 4],
         help="Layer sizes, e.g. --layers 2 4 4 8",
     )
+    parser.add_argument(
+        "--dropout",
+        type=float,
+        default=0.0,
+        help="Dropout probability after each hidden ReLU in the AR conv model (0 = disabled).",
+    )
+    parser.add_argument(
+        "--grad_clip",
+        type=float,
+        default=None,
+        help="Max gradient norm for clipping (None = disabled).",
+    )
+    parser.add_argument(
+        "--loss",
+        type=str,
+        default="mse",
+        choices=["mse", "cosine"],
+        help="Training loss and anomaly score: 'mse' (default) or 'cosine'.",
+    )
     args = parser.parse_args()
 
     model_type = args.model
@@ -134,6 +153,9 @@ def main():
     use_wandb = args.use_wandb
     wandb_project_name = args.wandb_project_name
     dilation_schedule = args.dilation_schedule
+    dropout = args.dropout
+    grad_clip = args.grad_clip
+    loss_fn = args.loss
 
     if random_seed:
         seed = random.randint(0, 2**32 - 1)
@@ -144,7 +166,10 @@ def main():
     # === SET EXPERIMENT NAME AND CREATE PATHS TO LOG RESULTS ===
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     dilation_schedule_str = "x".join(map(str, dilation_schedule))
-    exp_name = f"{model_type}_{dataset_name}_{mode}_ks{kernel_size}_dil{dilation_schedule_str}_seed{seed}_ep{epochs}_img{img_size}_{timestamp}"
+    drop_str = f"_drop{dropout}" if dropout > 0.0 else ""
+    gc_str = f"_gc{grad_clip}" if grad_clip is not None else ""
+    loss_str = f"_loss{loss_fn}" if loss_fn != "mse" else ""
+    exp_name = f"{model_type}_{dataset_name}_{mode}_ks{kernel_size}_dil{dilation_schedule_str}_seed{seed}_ep{epochs}_img{img_size}{drop_str}{gc_str}{loss_str}_{timestamp}"
     output_path = os.path.join(PROJECT_PATH, f"results/{exp_name}")
 
     # === INITIALIZE WANDB ===
@@ -216,6 +241,7 @@ def main():
         causal=causal,
         center_masked_first=center_masked_first,
         dilation_schedule=dilation_schedule,
+        dropout=dropout,
     ).to(device)
 
     ar2d = train_ar2d_model(
@@ -233,6 +259,8 @@ def main():
         imgs_vis=imgs_vis,
         labels_vis=labels_vis,
         use_wandb=use_wandb,
+        grad_clip=grad_clip,
+        loss_fn=loss_fn,
     )
 
 
