@@ -19,6 +19,9 @@ dist/
 
 # Ignore vscode directory
 .vscode/
+
+# Ignore Claude Code local settings
+.claude/
 *.pyc
 logs/
 logs_copy/
