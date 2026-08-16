@@ -249,8 +249,10 @@
       "CFLOW": "#7f7f7f",
       "AnomalyDINO (v2-S)": "#bcbd22",
       "AnomalyDINO (v3-S)": "#b5bd00",
-      "DPMM (v2-S)": "#17becf",
-      "DPMM (v3-S)": "#00a1c9",
+      "DINO-DPMM (v2-S)": "#17becf",
+      "DINO-DPMM (v3-S)": "#00a1c9",
+      "Dinomaly (v2-S)": "#5b6ee1",
+      "Dinomaly (v3-S)": "#3949ab",
       "Ours (standard conv)": "#f1c40f",
       "Ours (dilated conv)": "#ffdd00"
     };
@@ -264,12 +266,14 @@
       {name:"PatchCore",    runtime:218, auroc:{brats:null,          liver:[96.63,0.00], resc:[97.57,0.01]}, aupr:{brats:null,          liver:[6.00,0.01], resc:[72.77,0.06]}},
       {name:"CFA",          runtime:116, auroc:{brats:[97.33,0.09],  liver:[97.14,0.13], resc:[93.11,0.02]}, aupr:{brats:[54.67,0.69], liver:[7.13,0.41], resc:[30.84,0.09]}},
       {name:"CFLOW",        runtime:219, auroc:{brats:[94.93,0.71],  liver:[92.88,2.17], resc:[94.68,0.05]}, aupr:{brats:[34.99,6.26], liver:[3.46,0.70], resc:[52.23,1.19]}},
-      {name:"AnomalyDINO (v2-S)", runtime:984, auroc:{brats:[97.71,0.00], liver:[97.24,0.00], resc:[94.04,0.00]}, aupr:{brats:[58.69,0.00], liver:[17.91,0.00], resc:[50.45,0.00]}},
+      {name:"AnomalyDINO (v2-S)", runtime:984, auroc:{brats:[97.93,0.00], liver:[97.29,0.00], resc:[94.95,0.00]}, aupr:{brats:[58.03,0.00], liver:[14.28,0.00], resc:[47.83,0.00]}},
       {name:"AnomalyDINO (v3-S)", runtime:585, auroc:{brats:[98.38,0.00], liver:[96.98,0.00], resc:[96.93,0.00]}, aupr:{brats:[69.49,0.00], liver:[5.35,0.00],  resc:[63.40,0.00]}},
-      {name:"DPMM (v2-S)",        runtime:58,  auroc:{brats:[91.16,3.72],  liver:[96.30,0.94], resc:[86.47,1.84]}, aupr:{brats:[29.18,6.74], liver:[7.05,1.78], resc:[34.99,2.79]}},
-      {name:"DPMM (v3-S)",        runtime:149, auroc:{brats:[96.12,0.55],  liver:[90.48,1.05], resc:[86.94,7.76]}, aupr:{brats:[48.09,6.62], liver:[1.94,0.25], resc:[37.70,17.83]}},
-      {name:"Ours (standard conv)", runtime:20, auroc:{brats:[97.87,0.24], liver:[97.32,0.24], resc:[94.39,0.10]}, aupr:{brats:[64.70,3.56], liver:[8.44,1.09],  resc:[56.16,1.08]}},
-      {name:"Ours (dilated conv)",  runtime:20, auroc:{brats:[98.35,0.02], liver:[96.39,0.04], resc:[93.09,0.19]}, aupr:{brats:[72.42,0.47], liver:[5.51,0.26],  resc:[42.34,1.07]}},
+      {name:"DINO-DPMM (v2-S)",   runtime:58,  auroc:{brats:[91.16,3.72],  liver:[96.30,0.94], resc:[86.47,1.84]}, aupr:{brats:[29.18,6.74], liver:[7.05,1.78], resc:[34.99,2.79]}},
+      {name:"DINO-DPMM (v3-S)",   runtime:149, auroc:{brats:[96.12,0.55],  liver:[90.48,1.05], resc:[86.94,7.76]}, aupr:{brats:[48.09,6.62], liver:[1.94,0.25], resc:[37.70,17.83]}},
+      {name:"Dinomaly (v2-S)",    runtime:34,  auroc:{brats:[97.18,0.01],  liver:[97.72,0.03], resc:[96.31,0.08]}, aupr:{brats:[52.83,0.29], liver:[19.06,0.80], resc:[68.83,0.50]}},
+      {name:"Dinomaly (v3-S)",    runtime:17,  auroc:{brats:[97.20,0.02],  liver:[98.09,0.06], resc:[96.73,0.08]}, aupr:{brats:[58.40,1.31], liver:[25.33,0.79], resc:[73.81,0.30]}},
+      {name:"Ours (standard conv)", runtime:14, auroc:{brats:[97.33,0.14], liver:[97.29,0.02], resc:[97.29,0.02]}, aupr:{brats:[57.91,1.93], liver:[8.64,0.24],  resc:[61.38,0.61]}},
+      {name:"Ours (dilated conv)",  runtime:15, auroc:{brats:[98.44,0.04], liver:[96.75,0.04], resc:[96.75,0.04]}, aupr:{brats:[73.88,0.41], liver:[6.21,0.18],  resc:[60.36,1.05]}},
     ];
 
     function colorFor(name){ return COLOR_MAP[name] || "#9ca3af"; }
