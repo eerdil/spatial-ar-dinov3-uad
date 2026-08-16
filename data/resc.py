@@ -13,7 +13,7 @@ class RESCTrainGoodDataset(Dataset):
     """
     def __init__(self, img_dir, transform=None):
         self.img_dir = Path(img_dir)
-        self.image_paths = sorted(self.img_dir.glob("*.png"))
+        self.image_paths = sorted(p for p in self.img_dir.glob("*.png") if not p.name.startswith("._"))
         if len(self.image_paths) == 0:
             raise RuntimeError(f"No .png files found in {self.img_dir}")
         self.transform = transform
@@ -59,7 +59,7 @@ class RESCAnomalyDataset(Dataset):
 
         for cls_name, target in [("good", 0), ("Ungood", 1)]:
             img_dir = img_root / cls_name
-            img_paths = sorted(img_dir.glob("*.png"))
+            img_paths = sorted(p for p in img_dir.glob("*.png") if not p.name.startswith("._"))
 
             if len(img_paths) == 0:
                 print(f"Warning: no images found in {img_dir}")
